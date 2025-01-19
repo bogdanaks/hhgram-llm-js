@@ -1,5 +1,5 @@
 {
-  "name": "llm",
+  "name": "llm-js",
   "version": "1.0.0",
   "main": "./dist/app.js",
   "type": "module",
