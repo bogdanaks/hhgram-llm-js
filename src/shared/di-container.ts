@@ -11,11 +11,13 @@ import OpenAI from "openai"
 import { ResumeService } from "modules/resume"
 import { VacancyService } from "modules/vacancy"
 import { MiscParsedService } from "modules/misc-parsed"
+import { CronManager } from "./cron-manager"
 
 interface AppDependencies {
   openai: OpenAI
   logger: Logger
   db: DataSource
+  cronManager: CronManager
   llmController: LLMController
   llmService: LLMService
   messageController: MessageController
@@ -31,6 +33,7 @@ diContainer.register({
   openai: asValue(openai),
   logger: asValue(logger),
   db: asValue(AppDataSource),
+  cronManager: asClass(CronManager).singleton(),
   llmController: asClass(LLMController).singleton(),
   llmService: asClass(LLMService).singleton(),
   messageController: asClass(MessageController).singleton(),

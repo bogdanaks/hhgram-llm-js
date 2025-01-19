@@ -40,11 +40,20 @@ export class LLMController {
     this.miscParsedService = miscParsedService
   }
 
+  async test() {
+    this.logger.info("Test LLM")
+  }
+
   async startParsing() {
     try {
       this.logger.info("Start parsing messages")
       const messages = await this.messageService.getMessagesForParsing(5000)
       this.logger.info(`Need parsing ${messages.length} messages`)
+
+      if (!messages.length) {
+        this.logger.info("No messages for parsing")
+        return
+      }
 
       const chunkSize = 100
       const chunkMessages = chunkArray(messages, chunkSize)
