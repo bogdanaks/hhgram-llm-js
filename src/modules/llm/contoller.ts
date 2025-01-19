@@ -43,6 +43,63 @@ export class LLMController {
   async startParsing() {
     try {
       this.logger.info("Start parsing messages")
+      const messages = await this.messageService.getMessagesForParsing(100)
+      this.logger.info(`Need parsing ${messages.length} messages`)
+
+      if (!messages.length) {
+        this.logger.info("No messages for parsing")
+        return
+      }
+
+      const limit = pLimit(100)
+
+      await Promise.all(
+        messages.map((message) =>
+          limit(async () => {
+            try {
+              if (!message.text?.length) return
+
+              this.logger.debug(
+                `[${message.id}] Try parsing message with pre type ${message.pre_type}`
+              )
+              const parseResult = await this.llmService.parse(message)
+              if (!parseResult) {
+                await this.miscParsedService.save(message.id)
+                this.logger.warn(`[${message.id}] Parse undefined saved as misc`)
+                return
+              }
+              const { parsed, type } = parseResult
+
+              if (type === "resume" && parsed.resume && parsed.is_message_resume) {
+                await this.resumeService.save(parsed.resume, message.id, message.from_id)
+                this.logger.debug(`[${message.id}] Resume saved`)
+                return
+              }
+
+              if (type === "vacancy" && parsed.vacancy && parsed.is_message_vacancy) {
+                await this.vacancyService.save(parsed.vacancy, message.id, message.from_id)
+                this.logger.debug(`[${message.id}] Vacancy saved`)
+                return
+              }
+
+              await this.miscParsedService.save(message.id)
+              this.logger.warn(`[${message.id}] Misc parsed saved`)
+            } catch (err) {
+              this.logger.error(`[${message.id}] Failed to parse message:`, err)
+            }
+          })
+        )
+      )
+
+      this.logger.info(`Parsing ${messages.length} messages done`)
+    } catch (err) {
+      this.logger.error("Failed to start parsing:", err)
+    }
+  }
+
+  async startBatchParsing() {
+    try {
+      this.logger.info("Start parsing messages")
       const messages = await this.messageService.getMessagesForParsing(5000)
       this.logger.info(`Need parsing ${messages.length} messages`)
 
