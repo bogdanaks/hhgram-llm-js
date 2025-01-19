@@ -40,10 +40,6 @@ export class LLMController {
     this.miscParsedService = miscParsedService
   }
 
-  async test() {
-    this.logger.info("Test LLM")
-  }
-
   async startParsing() {
     try {
       this.logger.info("Start parsing messages")
